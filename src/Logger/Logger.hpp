@@ -10,6 +10,7 @@ class Logger
     Logger(const fs::path& log_file_path) : log_file_path(log_file_path) {}
     void log_start(const fs::path& file_path) const;
     void log_finish(const fs::path& file_path) const;
+    void log_error(const fs::path& file_path, const std::string& error_msg) const;
 
 
     private:

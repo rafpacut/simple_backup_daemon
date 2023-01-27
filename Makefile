@@ -48,6 +48,8 @@ clean:
 
 clean_test:
 	rm -rf test/test_dir/target/*
+	rm -rf test/test_dir/src/*
+	if [ -f app.log ]; then rm app.log; fi 
 
 test_simple: $(BUILD_TARGET) clean_test
 	test/test_driver/./basic_test.sh

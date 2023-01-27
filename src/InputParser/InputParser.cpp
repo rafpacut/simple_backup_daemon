@@ -18,5 +18,5 @@ InputParser::parse_paths(int argc, char* argv[]) const
         }
         return {src_path, target_path};
     }
-    throw std::runtime_error("Please provide existing src and target paths");
+    throw std::runtime_error("Please provide src and target paths");
 }
