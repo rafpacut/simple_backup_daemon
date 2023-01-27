@@ -5,6 +5,7 @@ BUILD_DIR := ./build
 SRC_DIRS := ./src
 
 CXX := g++
+CPPFLAGS := -Wall -Wpedantic -std=c++20
 
 SRCS := $(shell find $(SRC_DIRS) -name '*.cpp')
 
