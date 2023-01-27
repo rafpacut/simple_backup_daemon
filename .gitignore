@@ -1,3 +1,4 @@
 build/
 test/test_dir/src/*
 test/test_dir/target/*
+app.log
