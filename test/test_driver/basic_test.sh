@@ -5,6 +5,7 @@ target_path="./test/test_dir/target"
 binary_path="build/scanner"
 #temporary
 log_file_path="./app.log"
+tmp_link_dir="/tmp/link_dir"
 
 function basic_test1()
 {
@@ -62,19 +63,39 @@ function basic_test_dir()
     fi
 }
 
+function symlinks_name_clash_case()
+{
+    clean_test
+
+    echo "content_a" > $src_path/a.txt
+
+    echo "content_a_link" > $tmp_link_dir/a.txt
+    ln -s $tmp_link_dir/a.txt $src_path/a_link.txt
+
+    ./$binary_path $src_path $target_path
+}
+
 function basic_test_symlinks()
 {
     clean_test
-    echo "content_a" >> $src_path/a.txt
-    ln -s $src_path/a.txt $src_path/a_link.txt
+
+    echo "content_a" > $src_path/a.txt
 
     echo "content_b" > /tmp/b.txt
-    ln -s /tmp/abc.txt $src_path/b.txt
+    ln -s /tmp/b.txt $src_path/b_link.txt
+
+    if [ -d /tmp/link_dir ]; then rm -rf /tmp/link_dir; fi
+    mkdir -p /tmp/link_dir
+    touch /tmp/link_dir/a.txt
+    ln -s /tmp/link_dir $src_path/link_dir
 
     ./$binary_path $src_path $target_path
 
-    if [ -f $target_path/b.txt.bak ] \
-    && [ "content" == $(cat $target_path/abc.txt) ]; then
+    #&& [ "content" == $(cat $target_path/abc.txt) ] \
+    if [ -f $target_path/a.txt.bak ] \
+    && [ -f $target_path/b.txt.bak ] \
+    && [ -d $target_path/link_dir ] \
+    && [ -f $target_path/link_dir/a.txt.bak ] ; then
         echo "basic symlink test pass"
     else
         echo "basic symlink test fail"
@@ -86,6 +107,7 @@ function clean_test()
 	rm -rf $target_path/*
 	rm -rf $src_path/*
 	if [ -f app.log ]; then rm app.log; fi 
+	#if [ -d $tmp_link_dir ]; then rm $tmp_link_dir/*; fi 
 }
 
 basic_test1

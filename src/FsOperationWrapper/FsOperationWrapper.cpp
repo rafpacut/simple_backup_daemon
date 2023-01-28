@@ -9,7 +9,7 @@ bool FsOperationWrapper::copy_file(const fs::path& from, const fs::path& to) con
 
     std::error_code error_code;
     fs::copy(from, to,
-        fs::copy_options::update_existing | fs::copy_options::recursive,
+        fs::copy_options::update_existing,
         error_code);
 
 
@@ -21,7 +21,6 @@ bool FsOperationWrapper::copy_file(const fs::path& from, const fs::path& to) con
     logger.log_finish(from);
     return true;
 }
-
 
 bool FsOperationWrapper::create_directory(const fs::path& new_dir_path) const
 {
