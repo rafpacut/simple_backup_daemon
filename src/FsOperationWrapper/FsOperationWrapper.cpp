@@ -8,14 +8,14 @@ bool FsOperationWrapper::copy_file(const fs::path& source_path, const fs::path& 
 {
     const bool file_modified = fs::exists(target_path);
 
-    std::error_code error_code;
-    fs::copy(source_path,
-            target_path,
-            fs::copy_options::update_existing,
-            error_code);
-    if(error_code)
+    try
     {
-        logger.log_error(source_path, error_code.message());
+        fs::copy(source_path,
+                target_path,
+                fs::copy_options::update_existing);
+    }catch(const fs::filesystem_error& fs_error)
+    {
+        logger.log_error(fs_error.path1(), fs_error.what());
         return false;
     }
 
@@ -32,27 +32,31 @@ bool FsOperationWrapper::copy_file(const fs::path& source_path, const fs::path& 
 
 bool FsOperationWrapper::remove(const fs::path& path) const
 {
-    std::error_code error_code;
-    const bool completed = fs::remove(path, error_code);
-    if(not completed and error_code.value() != 0)
+    bool result{false};
+    try
     {
-        logger.log_error(path, error_code.message());
-        return completed;
+        result = fs::remove(path);
     }
+    catch(const fs::filesystem_error& fs_error)
+    {
+        logger.log_error(fs_error.path1(), fs_error.what());
+    }
+    
     logger.log_remove(path);
-    return completed;
-
+    return result;
 }
 
 bool FsOperationWrapper::create_directory(const fs::path& new_dir_path) const
 {
-    std::error_code error_code;
-    const bool completed = fs::create_directory(new_dir_path, error_code);
-    if(not completed)
+    bool result{false}; 
+    try
     {
-        logger.log_error(new_dir_path, error_code.message());
-        return completed;
+        result = fs::create_directory(new_dir_path);
+    }
+    catch(const fs::filesystem_error& fs_error)
+    {
+        logger.log_error(fs_error.path1(), fs_error.what());
     }
     logger.log_backup(new_dir_path);
-    return completed;
+    return result;
 }
