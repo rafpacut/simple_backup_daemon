@@ -7,18 +7,38 @@ binary_path="build/scanner"
 log_file_path="./app.log"
 tmp_link_dir="/tmp/link_dir"
 
+RED_OUTPUT_COLOR='\033[0;31m'
+GREEN_OUTPUT_COLOR='\033[0;32m'
+
+function echo_pass()
+{
+    test_name=$1
+    echo -e "${GREEN_OUTPUT_COLOR} $test_name PASS"
+}
+
+function echo_fail()
+{
+    test_name=$1
+    echo -e "${RED_OUTPUT_COLOR} $test_name FAIL"
+}
+
+function exec_sut()
+{
+    ./$binary_path $src_path $target_path
+}
+
 function basic_test1()
 {
     clean_test
 
     touch $src_path/a
     touch $src_path/a.txt
-    ./$binary_path $src_path $target_path
+    exec_sut
     sleep 1s
     if [ -f $target_path/a.txt.bak ] && [ -f $target_path/a.bak ]; then
-        echo "basic_test1 pass";
+        echo_pass basic_test1
     else
-        echo "basic_test1 fail";
+        echo_fail basic_test1
     fi
 }
 
@@ -48,7 +68,7 @@ function basic_test_dir()
     mkdir $src_path/dir/dir
     touch $src_path/dir/dir/abc
 
-    ./$binary_path $src_path $target_path
+    exec_sut
     sleep 1s
 
     if [ -f $target_path/basic_test_dir_file.txt.bak ] \
@@ -57,9 +77,9 @@ function basic_test_dir()
         && [ -f $target_path/dir/basic_test_dir_file2.txt.bak ] \
         && [ -d $target_path/dir/dir ] \
         && [ -f $target_path/dir/dir/abc.bak ] ; then 
-        echo "basic_test_dir pass"
+        echo_pass "basic_test_dir"
     else
-        echo "basic_test_dir fail"
+        echo_fail "basic_test_dir"
     fi
 }
 
@@ -72,33 +92,151 @@ function symlinks_name_clash_case()
     echo "content_a_link" > $tmp_link_dir/a.txt
     ln -s $tmp_link_dir/a.txt $src_path/a_link.txt
 
-    ./$binary_path $src_path $target_path
+    exec_sut
 }
 
 function basic_test_symlinks()
 {
     clean_test
 
-    echo "content_a" > $src_path/a.txt
+    mkdir -p $tmp_link_dir/link_dir
+    if [ -d $tmp_link_dir/link_dir ]; then rm -rf $tmp_link_dir/link_dir/*; fi
 
-    echo "content_b" > /tmp/b.txt
-    ln -s /tmp/b.txt $src_path/b_link.txt
+    touch $src_path/a.txt
 
-    if [ -d /tmp/link_dir ]; then rm -rf /tmp/link_dir; fi
-    mkdir -p /tmp/link_dir
-    touch /tmp/link_dir/a.txt
-    ln -s /tmp/link_dir $src_path/link_dir
+    touch $tmp_link_dir/b.txt
+    ln -s $tmp_link_dir/b.txt $src_path/b_link.txt
 
-    ./$binary_path $src_path $target_path
+    touch $tmp_link_dir/link_dir/a.txt
+    ln -s $tmp_link_dir/link_dir $src_path/link_dir
 
-    #&& [ "content" == $(cat $target_path/abc.txt) ] \
+    exec_sut
+
     if [ -f $target_path/a.txt.bak ] \
-    && [ -f $target_path/b.txt.bak ] \
+    && [ -f $target_path/b_link.txt.bak ] \
     && [ -d $target_path/link_dir ] \
     && [ -f $target_path/link_dir/a.txt.bak ] ; then
-        echo "basic symlink test pass"
+        echo_pass "basic_test_symlinks" 
     else
-        echo "basic symlink test fail"
+        echo_fail "basic_test_symlinks" 
+    fi
+}
+
+function delete_no_effect_case()
+{
+    clean_test
+
+    touch $src_path/a.txt
+    exec_sut
+
+    [ -f $target_path/a.txt.bak ]
+
+    touch $src_path/delete_a.txt
+    exec_sut
+    #the way the fs tree is iterated rn
+    #the deletion of $src_path/a.txt might not get observed
+    #by fs::recursive_iterator and this non-existing file
+}
+
+function delete_symlink_case()
+{
+    clean_test
+
+    mkdir -p $/tmp_link_dir
+    touch $tmp_link_dir/a.txt
+    ln -s $tmp_link_dir/a.txt $src_path/alink
+
+    exec_sut
+    
+    echo "foo"
+    [ -f $target_path/a.txt.bak ]
+    echo "bar"
+
+    mv $src_path/alink $src_path/delete_alink
+
+    exec_sut
+
+    #What then?
+
+}
+
+function basic_delete_test()
+{
+    clean_test 
+
+    touch $src_path/a.txt
+    exec_sut
+
+    [ -f $target_path/a.txt.bak ]
+
+    mv $src_path/a.txt $src_path/delete_a.txt
+    exec_sut
+
+    if [ ! -f $target_path/a.txt.bak ] \
+    && [ ! -f $src_path/a.txt ] \
+    && [ ! -f $src_path/delete_a.txt ] ; then
+        echo_pass "$0" 
+    else
+        echo_fail "$0" 
+    fi
+}
+
+function backup_modified_files
+{
+    clean_test
+
+    a_content="content_a_1"
+    b_content="content_b_1"
+    echo $a_content > $src_path/a.txt
+    echo $b_content> $src_path/b.txt
+
+    exec_sut
+
+    
+    [ -f $target_path/a.txt.bak ]
+    [ -f $target_path/b.txt.bak ]
+
+    sleep 0.1s
+    b_content_new="content_b_2"
+    echo $b_content_new > $src_path/b.txt
+
+    exec_sut
+
+    if [ -f $target_path/a.txt.bak ] \
+    && [ -f $target_path/b.txt.bak ] \
+    && [ $(cat $target_path/a.txt.bak) = $a_content ] \
+    && [ $(cat $target_path/b.txt.bak) = $b_content_new ]; then
+        echo_pass "$0"
+    else
+        echo_fail "$0"
+    fi
+}
+
+function modified_file_toggling_no_backup()
+{
+    clean_test
+
+    pass_number=0
+    fail_number=0
+    for _ in {1..100}; do
+        echo "a1" > $src_path/a.txt
+        exec_sut
+        #passes only with sleep command below 
+        #sleep 0.1s
+        echo "a2" > $src_path/a.txt
+        exec_sut
+        if [ $(cat $target_path/a.txt.bak) = "a2" ]; then
+            pass_number=$(($pass_number+1))
+        else
+            fail_number=$(($fail_number+1))
+        fi
+    done
+    echo "pass/fail: $pass_number/$fail_number"
+
+    if [ $fail_number -eq 0 ]; then
+        echo_pass "$0"
+    else
+        echo_fail "$0"
     fi
 }
 
@@ -113,3 +251,6 @@ function clean_test()
 basic_test1
 basic_test_dir
 basic_test_symlinks
+basic_delete_test
+backup_modified_files
+modified_file_toggling_no_backup
