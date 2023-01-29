@@ -33,7 +33,7 @@ void Logger::log_remove(const fs::path& path) const
     log_event(path, "removed");
 }
 
-void Logger::log_error(const fs::path& path, const fs::path& path2, const std::string& error_msg) const
+void Logger::log_error(const fs::path& path, const std::string& error_msg) const
 {
     log_event(path, "ERR: "+error_msg);
 }
