@@ -4,10 +4,9 @@
 #include<iostream>
 namespace fs = std::filesystem;
 
-bool FsOperationWrapper::copy_file(const fs::path& source_path, const fs::path& target_path) const
+void FsOperationWrapper::copy_file(const fs::path& source_path, const fs::path& target_path) const
 {
     const bool file_modified = fs::exists(target_path);
-
     try
     {
         fs::copy(source_path,
@@ -16,18 +15,15 @@ bool FsOperationWrapper::copy_file(const fs::path& source_path, const fs::path& 
     }catch(const fs::filesystem_error& fs_error)
     {
         logger.log_error(fs_error.path1(), fs_error.what());
-        return false;
+        return;
     }
 
     if(file_modified)
     {
         logger.log_modify(source_path);
+        return;
     }
-    else
-    {
-        logger.log_backup(source_path);
-    }
-    return true;
+    logger.log_backup(source_path);
 }
 
 bool FsOperationWrapper::remove(const fs::path& path) const

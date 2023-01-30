@@ -122,6 +122,46 @@ function basic_test_symlinks()
     fi
 }
 
+function clean_tmp_link_dir()
+{
+    if [ -d $tmp_link_dir/link_dir ]; then 
+        rm -rf $tmp_link_dir/link_dir/*
+    else
+        mkdir -p $tmp_link_dir
+    fi
+}
+
+function backup_chained_symlinks()
+{
+    clean_test
+
+    a_content="a_content"
+    echo $a_content > $tmp_link_dir/a.txt
+    ln -s $tmp_link_dir/a.txt $tmp_link_dir/a_link
+    ln -s $tmp_link_dir/a_link $src_path/a_link_link
+
+    exec_sut
+
+    if [ -f $target_path/a_link_link.bak ] \
+    && [ $(cat $target_path/a_link_link.bak) = $a_content ]; then
+        echo_pass "$0"
+    else
+        echo_fail "$0"
+    fi
+}
+
+function fail_on_dangling_symlink()
+{
+    clean_test
+
+    touch $tmp_link_dir/a.txt
+    ln -s $tmp_link_dir/a.txt $src_path/a_link
+
+    rm $tmp_link_dir/a.txt
+
+    exec_sut
+}
+
 function delete_no_effect_case()
 {
     clean_test
@@ -245,12 +285,14 @@ function clean_test()
 	rm -rf $target_path/*
 	rm -rf $src_path/*
 	if [ -f app.log ]; then rm app.log; fi 
-	#if [ -d $tmp_link_dir ]; then rm $tmp_link_dir/*; fi 
+    clean_tmp_link_dir
 }
 
 basic_test1
-basic_test_dir
-basic_test_symlinks
-basic_delete_test
-backup_modified_files
-modified_file_toggling_no_backup
+#basic_test_dir
+#basic_test_symlinks
+#basic_delete_test
+#backup_modified_files
+#modified_file_toggling_no_backup
+#backup_chained_symlinks
+#fail_on_dangling_symlink

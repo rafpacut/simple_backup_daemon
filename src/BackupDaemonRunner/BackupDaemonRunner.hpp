@@ -7,20 +7,22 @@ namespace fs = std::filesystem;
 class BackupDaemonRunner
 {
     public:
-    BackupDaemonRunner(const fs::path& src_base_path, const fs::path& target_base_path, const fs::path& log_path) :
-        src_base_path(src_base_path),
-        target_base_path(target_base_path),
-        logger(log_path),
-        fs_op_wrap(logger),
-        tpc(src_base_path, target_base_path) {}
+        BackupDaemonRunner(const fs::path& src_base_path
+                         , const fs::path& target_base_path
+                         , const fs::path& log_path)
+        : src_base_path(src_base_path)
+        , target_base_path(target_base_path)
+        , logger(log_path)
+        , fs_op_wrap(logger)
+        , tpc(src_base_path, target_base_path, logger) {}
 
-    void run();
+        void run();
 
     private:
-    FsOperationWrapper fs_op_wrap;
-    Logger logger;
-    TargetPathCreator tpc;
+        FsOperationWrapper fs_op_wrap;
+        Logger logger;
+        TargetPathCreator tpc;
 
-    const fs::path& src_base_path;
-    const fs::path& target_base_path;
+        const fs::path& src_base_path;
+        const fs::path& target_base_path;
 };

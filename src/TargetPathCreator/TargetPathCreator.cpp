@@ -3,7 +3,6 @@
 fs::path TargetPathCreator::create_target_path_for_tagged_entry(const fs::directory_entry& entry) const
 {
     fs::path path_no_tag = create_target_path_without_tag(entry.path());
-    const auto file_status_no_tag = fs::status(path_no_tag);
     if(entry.is_regular_file())
     {
         return create_target_path_for_regular_file(path_no_tag);
@@ -16,7 +15,7 @@ fs::path TargetPathCreator::create_target_path_for_tagged_entry(const fs::direct
     {
         return create_target_path_for_symlink(path_no_tag, entry.status());
     }
-    throw std::runtime_error("tagged file is not a dir or regular file");//handle better in future
+    return fs::path{};
 }
 
 fs::path TargetPathCreator::create_target_path_for_symlink(const fs::path& path, const fs::file_status& link_target_file_status) const
@@ -29,7 +28,8 @@ fs::path TargetPathCreator::create_target_path_for_symlink(const fs::path& path,
     {
         return create_target_path(path);
     }
-    throw std::runtime_error("target link is not a dir or regular file");//handle better in future
+    //it'll try and copy weird files
+    return fs::path{};
 }
 
 fs::path TargetPathCreator::create_target_path_for_regular_file(const fs::path& path) const

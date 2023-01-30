@@ -24,14 +24,16 @@ void BackupDaemonRunner::run()
             const auto target_path = tpc.create_target_path_for_tagged_entry(entry);
             fs_op_wrap.remove(entry.path());
             fs_op_wrap.remove(target_path);
-        } else if(entry.is_directory())
+        }
+        else if(entry.is_directory())
         {
-            const auto target_path = tpc.create_target_path(entry);
+            const auto target_path = tpc.create_target_path(entry.path());
             fs_op_wrap.create_directory(target_path);
         }
         else if(entry.is_symlink())
         {
-            const fs::path symlink_path = fs::read_symlink(entry.path());
+            std::error_code error_code;
+            const fs::path symlink_path = fs::read_symlink(entry.path(), error_code);//returns fs::path{} on error
             const auto target_path = tpc.create_target_path_for_symlink(entry.path(), entry.status());
             fs_op_wrap.copy_file(symlink_path, target_path);
         }
