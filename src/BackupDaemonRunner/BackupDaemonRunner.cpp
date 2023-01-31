@@ -15,7 +15,7 @@ bool is_tagged_for_removal(const fs::directory_entry& entry)
 }
 }
 
-void BackupDaemonRunner::run()
+void BackupDaemonRunner::operator()()
 {
     for(const auto entry : fs::recursive_directory_iterator(src_base_path, fs::directory_options::follow_directory_symlink))
     {

@@ -16,7 +16,7 @@ class BackupDaemonRunner
         , fs_op_wrap(logger)
         , tpc(src_base_path, target_base_path, logger) {}
 
-        void run();
+        void operator()();
 
     private:
         FsOperationWrapper fs_op_wrap;

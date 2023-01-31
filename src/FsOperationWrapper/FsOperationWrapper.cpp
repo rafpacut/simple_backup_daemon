@@ -1,7 +1,6 @@
 #include"FsOperationWrapper.hpp"
 #include<filesystem>
 #include<system_error>
-#include<iostream>
 namespace fs = std::filesystem;
 
 void FsOperationWrapper::copy_file(const fs::path& source_path, const fs::path& target_path) const
@@ -12,7 +11,8 @@ void FsOperationWrapper::copy_file(const fs::path& source_path, const fs::path& 
         fs::copy(source_path,
                 target_path,
                 fs::copy_options::update_existing);
-    }catch(const fs::filesystem_error& fs_error)
+    }
+    catch(const fs::filesystem_error& fs_error)
     {
         logger.log_error(fs_error.path1(), fs_error.what());
         return;

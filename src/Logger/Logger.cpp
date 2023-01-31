@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <time.h>
 
+#include<iostream>
+
 namespace
 {
 std::string get_date_time_now()
@@ -42,6 +44,6 @@ void Logger::log_event(const fs::path& path, const std::string& message) const
 {
     std::string time_date_now = get_date_time_now();
     std::ofstream ofs(log_file_path.string(), std::ofstream::app);
-    ofs<<time_date_now<<","<<path<<","<<message<<std::endl;
+    ofs<<time_date_now<<','<<path.string()<<','<<message<<std::endl;
     ofs.close();
 }

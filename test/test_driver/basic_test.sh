@@ -9,17 +9,21 @@ tmp_link_dir="/tmp/link_dir"
 
 RED_OUTPUT_COLOR='\033[0;31m'
 GREEN_OUTPUT_COLOR='\033[0;32m'
+DEFAULT_OUTPUT_COLOR='\033[0m'
 
 function echo_pass()
 {
-    test_name=$1
-    echo -e "${GREEN_OUTPUT_COLOR} $test_name PASS"
+    echo -e "${GREEN_OUTPUT_COLOR} PASS ${DEFAULT_OUTPUT_COLOR}"
 }
 
 function echo_fail()
 {
-    test_name=$1
-    echo -e "${RED_OUTPUT_COLOR} $test_name FAIL"
+    echo -e "${RED_OUTPUT_COLOR} FAIL ${DEFAULT_OUTPUT_COLOR}"
+}
+
+function echo_start()
+{
+    echo "starting testcase $1"
 }
 
 function exec_sut()
@@ -29,6 +33,7 @@ function exec_sut()
 
 function basic_test1()
 {
+    echo_start "$FUNCNAME"
     clean_test
 
     touch $src_path/a
@@ -36,29 +41,15 @@ function basic_test1()
     exec_sut
     sleep 1s
     if [ -f $target_path/a.txt.bak ] && [ -f $target_path/a.bak ]; then
-        echo_pass basic_test1
+        echo_pass
     else
-        echo_fail basic_test1
+        echo_fail
     fi
-}
-
-function check_app_log()
-{
-    filename_csv_file_index := 2
-    message_csv_file_index := 3
-    while read -r line; do
-        IFS=',' read -rA ADDR <<< "$line"
-        
-    done < app.log
-}
-
-function log_basic_test1()
-{
-    basic_test1
 }
 
 function basic_test_dir()
 {
+    echo_start "$FUNCNAME"
     clean_test
 
     touch $src_path/basic_test_dir_file.txt
@@ -77,14 +68,15 @@ function basic_test_dir()
         && [ -f $target_path/dir/basic_test_dir_file2.txt.bak ] \
         && [ -d $target_path/dir/dir ] \
         && [ -f $target_path/dir/dir/abc.bak ] ; then 
-        echo_pass "basic_test_dir"
+        echo_pass
     else
-        echo_fail "basic_test_dir"
+        echo_fail
     fi
 }
 
 function symlinks_name_clash_case()
 {
+    echo_start "$FUNCNAME"
     clean_test
 
     echo "content_a" > $src_path/a.txt
@@ -97,6 +89,7 @@ function symlinks_name_clash_case()
 
 function basic_test_symlinks()
 {
+    echo_start "$FUNCNAME"
     clean_test
 
     mkdir -p $tmp_link_dir/link_dir
@@ -116,23 +109,28 @@ function basic_test_symlinks()
     && [ -f $target_path/b_link.txt.bak ] \
     && [ -d $target_path/link_dir ] \
     && [ -f $target_path/link_dir/a.txt.bak ] ; then
-        echo_pass "basic_test_symlinks" 
+        echo_pass
     else
-        echo_fail "basic_test_symlinks" 
+        echo_fail
     fi
 }
 
 function clean_tmp_link_dir()
 {
-    if [ -d $tmp_link_dir/link_dir ]; then 
-        rm -rf $tmp_link_dir/link_dir/*
-    else
-        mkdir -p $tmp_link_dir
+    if [ -d $tmp_link_dir ]; then
+        rm -rf $tmp_link_dir
+        #for i in "$tmp_link_dir/link_dir/*"; do
+            #echo "about to delete $i"
+            #rm -rf $i;
+        #done
+        #rm -rf $tmp_link_dir/link_dir/*
     fi
+    mkdir -p $tmp_link_dir
 }
 
 function backup_chained_symlinks()
 {
+    echo_start "$FUNCNAME"
     clean_test
 
     a_content="a_content"
@@ -144,14 +142,20 @@ function backup_chained_symlinks()
 
     if [ -f $target_path/a_link_link.bak ] \
     && [ $(cat $target_path/a_link_link.bak) = $a_content ]; then
-        echo_pass "$0"
+        echo_pass
     else
-        echo_fail "$0"
+        echo_fail
     fi
+}
+
+function expect_error()
+{
+    echo "expect_error_placeholder"
 }
 
 function fail_on_dangling_symlink()
 {
+    echo_start "$FUNCNAME"
     clean_test
 
     touch $tmp_link_dir/a.txt
@@ -160,10 +164,13 @@ function fail_on_dangling_symlink()
     rm $tmp_link_dir/a.txt
 
     exec_sut
+
+    expect_error
 }
 
 function delete_no_effect_case()
 {
+    echo_start "$FUNCNAME"
     clean_test
 
     touch $src_path/a.txt
@@ -180,6 +187,7 @@ function delete_no_effect_case()
 
 function delete_symlink_case()
 {
+    echo_start "$FUNCNAME"
     clean_test
 
     mkdir -p $/tmp_link_dir
@@ -200,8 +208,9 @@ function delete_symlink_case()
 
 }
 
-function basic_delete_test()
+function basic_delete_test_rename_original_source_file()
 {
+    echo_start "$FUNCNAME"
     clean_test 
 
     touch $src_path/a.txt
@@ -215,14 +224,43 @@ function basic_delete_test()
     if [ ! -f $target_path/a.txt.bak ] \
     && [ ! -f $src_path/a.txt ] \
     && [ ! -f $src_path/delete_a.txt ] ; then
-        echo_pass "$0" 
+        echo_pass
     else
-        echo_fail "$0" 
+        echo_fail
+    fi
+}
+
+function basic_delete_test_create_tagged_file()
+{
+    #GIVEN:
+    #./src/file and ./target/file.bak
+    #WHEN:
+    #touch ./src/delete_file
+    #outcome should be:
+    #./src empty and ./target/empty
+
+    echo_start "$FUNCNAME"
+    clean_test
+
+    touch $src_path/file
+    exec_sut
+
+    [ -f $target_path/file.bak ]
+
+    touch $src_path/delete_file
+    exec_sut
+
+    if [ "$(ls -A $src_path)" ] \
+    && [ "$(ls -A $target_path)" ]; then
+        echo_pass
+    else
+        echo_fail
     fi
 }
 
 function backup_modified_files
 {
+    echo_start "$FUNCNAME"
     clean_test
 
     a_content="content_a_1"
@@ -246,14 +284,15 @@ function backup_modified_files
     && [ -f $target_path/b.txt.bak ] \
     && [ $(cat $target_path/a.txt.bak) = $a_content ] \
     && [ $(cat $target_path/b.txt.bak) = $b_content_new ]; then
-        echo_pass "$0"
+        echo_pass
     else
-        echo_fail "$0"
+        echo_fail
     fi
 }
 
 function modified_file_toggling_no_backup()
 {
+    echo_start "$FUNCNAME"
     clean_test
 
     pass_number=0
@@ -274,9 +313,9 @@ function modified_file_toggling_no_backup()
     echo "pass/fail: $pass_number/$fail_number"
 
     if [ $fail_number -eq 0 ]; then
-        echo_pass "$0"
+        echo_pass
     else
-        echo_fail "$0"
+        echo_fail
     fi
 }
 
@@ -288,11 +327,35 @@ function clean_test()
     clean_tmp_link_dir
 }
 
+function check_app_log()
+{
+    filename_csv_file_index=2
+    message_csv_file_index=3
+    while IFS="," read -r date timestamp path message; do
+        echo "$path"
+        echo "$message"
+        if [ ! $(echo $message | grep "*ERR*") = "" ]; then
+            echo_fail;
+            return;
+        fi
+    done < <(cat app.log)
+}
+
+function log_basic_test1()
+{
+    basic_test1
+    check_app_log
+}
+
 basic_test1
 #basic_test_dir
 #basic_test_symlinks
 #basic_delete_test
+*basic_delete_test_create_tagged_file
 #backup_modified_files
-#modified_file_toggling_no_backup
 #backup_chained_symlinks
 #fail_on_dangling_symlink
+
+#log_basic_test1
+
+#modified_file_toggling_no_backup
