@@ -1,3 +1,6 @@
+#ifndef INPUT_PARSER
+#define INPUT_PARSER
+
 #include<utility>
 #include<stdexcept>
 #include<filesystem>
@@ -18,3 +21,5 @@ public:
     //std::pair<std::regex,std::regex> parse_log_regex(const std::vector<std::string>&) const;
     std::optional<RegexPair> parse_log_regex(const std::string&) const;
 };
+
+#endif

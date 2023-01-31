@@ -17,8 +17,10 @@ int main(int argc, char* argv[])
     //daemon_thread.detach();
     backup_daemon();
 
+    /*
     const UserInteractiveInputHandler input_handler(ip);
     input_handler.handle_log_display_queries(log_file_path);
+    */
 
     return 0;
 }

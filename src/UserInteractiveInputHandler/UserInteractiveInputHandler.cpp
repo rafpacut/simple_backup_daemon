@@ -15,6 +15,7 @@ void UserInteractiveInputHandler::handle_log_display_queries(const fs::path& log
             presenter.display_entries(log_entries);
             continue;
         }
+
         std::optional<RegexPair> regex_pair_opt= ip.parse_log_regex(line);
         while(not regex_pair_opt)
         {

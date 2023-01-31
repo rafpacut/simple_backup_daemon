@@ -19,10 +19,16 @@ class BackupDaemonRunner
         void operator()();
 
     private:
+        bool is_tagged_for_removal(const fs::directory_entry& entry) const;
+        void remove_src_file_without_tag(const fs::path& tag_file_path) const;
+
         FsOperationWrapper fs_op_wrap;
         Logger logger;
         TargetPathCreator tpc;
 
         const fs::path& src_base_path;
         const fs::path& target_base_path;
+
+        const std::string DELETE_PREFIX = "delete_";
+        const size_t DELETE_PREFIX_LENGTH = 7;
 };

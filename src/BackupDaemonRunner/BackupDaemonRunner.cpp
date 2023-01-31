@@ -1,18 +1,28 @@
 #include"BackupDaemonRunner.hpp"
 
-namespace
-{
-bool is_tagged_for_removal(const fs::directory_entry& entry)
+bool BackupDaemonRunner::is_tagged_for_removal(const fs::directory_entry& entry) const
 {
     const auto filename_str = entry.path().filename().string();
-    const auto delete_prefix_length = 7;
-    if( filename_str.size() <= delete_prefix_length)
+    if( filename_str.size() <= DELETE_PREFIX_LENGTH)
     {
         return false;
     }
-    const auto filename_prefix = std::string(filename_str.begin(), filename_str.begin()+delete_prefix_length);
-    return filename_prefix == "delete_";
+    const auto filename_prefix = std::string(filename_str.begin(), filename_str.begin()+DELETE_PREFIX_LENGTH);
+    return filename_prefix == DELETE_PREFIX;
 }
+
+//fname sucks...
+void BackupDaemonRunner::remove_src_file_without_tag(const fs::path& tag_file_path) const
+{
+    auto filename_str = tag_file_path.filename().string();
+    const auto filename_str_no_tag = std::string(filename_str.begin()+DELETE_PREFIX_LENGTH, filename_str.end());
+
+    auto source_path_no_tag = tag_file_path;
+    source_path_no_tag.replace_filename(filename_str_no_tag);
+    if(fs::exists(source_path_no_tag))
+    {
+        fs_op_wrap.remove(source_path_no_tag);
+    }
 }
 
 void BackupDaemonRunner::operator()()
@@ -22,6 +32,7 @@ void BackupDaemonRunner::operator()()
         if(is_tagged_for_removal(entry))
         {
             const auto target_path = tpc.create_target_path_for_tagged_entry(entry);
+            remove_src_file_without_tag(entry.path());
             fs_op_wrap.remove(entry.path());
             fs_op_wrap.remove(target_path);
         }
