@@ -15,11 +15,16 @@ class InputParser
 public:
     InputParser() = default;
 
-    std::pair<fs::path, fs::path>
-    parse_paths(int argc, char* argv[]) const;
+    std::tuple<bool, fs::path, fs::path>
+    parse_cmdline_input(int argc, char* argv[]) const;
 
-    //std::pair<std::regex,std::regex> parse_log_regex(const std::vector<std::string>&) const;
     std::optional<RegexPair> parse_log_regex(const std::string&) const;
+    bool try_parse_quit(const std::string& line) const;
+
+    private:
+
+    const std::string debug_run_symbol = "d";
+    std::vector<std::string> split_line_by_whitespace(const std::string& line) const;
 };
 
 #endif

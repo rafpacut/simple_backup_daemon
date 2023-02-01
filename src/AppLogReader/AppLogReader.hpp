@@ -4,8 +4,6 @@
 #include<vector>
 #include<string>
 #include<optional>
-#include<fstream>
-#include<sstream>
 #include"../LogEntry/LogEntry.hpp"
 namespace fs = std::filesystem;
 

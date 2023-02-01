@@ -1,31 +1,30 @@
 #include"InputParser.hpp"
 #include<iostream>
 
-namespace
-{
-    void print_help_msg()
-    {
-        std::cout<<"Usage: ./scanner <source_director_path> <target_directory_path>\n";
-    }
-}
 
-std::pair<fs::path, fs::path>
-InputParser::parse_paths(int argc, char* argv[]) const
+std::tuple<bool, fs::path, fs::path>
+InputParser::parse_cmdline_input(int argc, char* argv[]) const
 {
-    if(argc == 3)
+    bool is_debug_run{false};
+    fs::path src_path;
+    fs::path target_path;
+    if(argc == 4 and std::string(argv[3]) == debug_run_symbol)
     {
-        fs::path src_path;
-        fs::path target_path;
-        try{
-            src_path = std::string(argv[1]);
-            target_path = std::string(argv[2]);
+        is_debug_run = true;
+    }
+    if((argc == 3) or is_debug_run)
+    {
+        try
+        {
+            src_path = fs::path(argv[1]);
+            target_path = fs::path(argv[2]);
         }
         catch(std::runtime_error& e)
         {
             std::cerr<<e.what()<<std::endl;
             throw std::runtime_error("Please provide existing src and target paths");
         }
-        return {src_path, target_path};
+        return {is_debug_run, src_path, target_path};
     }
     throw std::runtime_error("Please provide src and target paths");
 }
@@ -33,17 +32,7 @@ InputParser::parse_paths(int argc, char* argv[]) const
 std::optional<RegexPair>
 InputParser::parse_log_regex(const std::string& line) const
 {
-    std::stringstream ss(line);
-    std::string word;
-    std::vector<std::string> words;
-    while(std::getline(ss, word, ' '))
-    {
-        if(word.size() > 0)
-        {
-            words.push_back(word);
-        }
-    }
-
+    const std::vector<std::string> words = split_line_by_whitespace(line);
     if(words.size() != 2)
     {
         std::cerr<<"Please provide two valid regex entries: <date_regex> and <filename_regex>"<<std::endl;
@@ -65,7 +54,26 @@ InputParser::parse_log_regex(const std::string& line) const
     return {{date_regex, filename_regex}};
 }
 
+bool InputParser::try_parse_quit(const std::string& line) const
+{
+    const std::vector<std::string> words = split_line_by_whitespace(line);
+    return (words.size() == 1) and words[0] == "q";
+}
 
+std::vector<std::string> InputParser::split_line_by_whitespace(const std::string& line) const
+{
+    std::stringstream ss(line);
+    std::string word;
+    std::vector<std::string> words;
+    while(std::getline(ss, word, ' '))
+    {
+        if(word.size() > 0)
+        {
+            words.push_back(word);
+        }
+    }
+    return words;
+}
 
 
 

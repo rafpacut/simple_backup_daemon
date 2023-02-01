@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <time.h>
 
-#include<iostream>
-
 namespace
 {
 std::string get_date_time_now()

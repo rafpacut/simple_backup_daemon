@@ -1,4 +1,6 @@
 #include"AppLogReader.hpp"
+#include<fstream>
+#include<sstream>
 
 std::vector<std::string> AppLogReader::split_by_comma(const std::string& line) const
 {
@@ -18,7 +20,7 @@ std::optional<LogEntry> AppLogReader::process_line(const std::string& line) cons
 
     if(row.size() == LogEntry::FIELDS_NUM)
     {
-        //que?
+        //que? Why do I need FIELDS_NUM then?
         return {{row[0],row[1],row[2],row[3]}};
     }
     return std::nullopt;
@@ -26,11 +28,6 @@ std::optional<LogEntry> AppLogReader::process_line(const std::string& line) cons
 
 LogEntries AppLogReader::read_app_log(const fs::path& log_path) const
 {
-    //here apply check for log_path:
-    //exists?
-    //is_regular_file?
-    //most likely acquire mutex (or discard incomplete entries)
-    //open file
     LogEntries log_entries;
 
     std::ifstream log_file_stream;

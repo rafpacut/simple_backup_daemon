@@ -28,6 +28,7 @@ class UserInteractiveInputHandler
 * .* [a-z]+[0-9]+.txt                                                            *\n\
 * 2023-[01|02].* .*                                                              *\n\
 * .* .*.[txt|mp3]                                                                *\n\
+* To terminate the program type 'q'                                              *\n\
 **********************************************************************************\n";
 };
 #endif

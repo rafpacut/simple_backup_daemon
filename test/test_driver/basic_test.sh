@@ -29,7 +29,7 @@ function echo_start()
 
 function exec_sut()
 {
-    ./$binary_path $src_path $target_path
+    ./$binary_path $src_path $target_path d
 }
 
 function compare_target_with_expected()
