@@ -30,13 +30,12 @@ void BackupDaemon::operator()(std::atomic_bool& running)
 {
     while(running.load())
     {
-        //200 constant buried in implementation...
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        std::this_thread::sleep_for(DELAY);
         for(const auto entry : fs::recursive_directory_iterator(src_base_path, fs::directory_options::follow_directory_symlink))
         {
-            if(running.load())
+            if(not running.load())
             {
-                break;
+                return;
             }
             if(is_tagged_for_removal(entry))
             {

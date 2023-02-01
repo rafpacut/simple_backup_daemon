@@ -31,6 +31,7 @@ class BackupDaemon
         const fs::path& src_base_path;
         const fs::path& target_base_path;
 
+        const std::chrono::milliseconds DELAY{200};
         const std::string DELETE_PREFIX{"delete_"};
         const size_t DELETE_PREFIX_LENGTH{7};
 };
