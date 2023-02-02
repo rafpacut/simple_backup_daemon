@@ -1,4 +1,4 @@
-Backup daemon for Linux OS:
+## Backup daemon for Linux OS:
 
 Creates a copy of any file created or modified in the hot folder
 
@@ -14,23 +14,23 @@ Log file filters accept filter by [date, filename regex]
 
 The application keeps it's state between reboots
 
-Dependencies:
-
+## Dependencies:
+```
     make
-
     gcc (tested on gcc 11)
+```
 
-How to build:
+## How to build:
 
-    `make`
+    $ make
 
-Run tests:
+## Run tests:
 
-    `make test`
+    $ make test
 
-Usage:
-
-    `build/./scanner /path/to/source/directory /path/to/target/directory`
-
-    or `make run` (equivalent to `build/./scanner ./test/test_dir/src ./test/test_dir/target`)
+## Usage:
+    $ build/./scanner /path/to/source/directory /path/to/target/directory
+    or
+    $ make run 
+    (equivalent to `build/./scanner ./test/test_dir/src ./test/test_dir/target`)
 
