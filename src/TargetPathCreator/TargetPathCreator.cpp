@@ -1,4 +1,5 @@
 #include"TargetPathCreator.hpp"
+#include"../utils/utils.hpp"
 
 fs::path TargetPathCreator::create_target_path_for_tagged_entry(const fs::directory_entry& entry) const
 {
@@ -28,7 +29,6 @@ fs::path TargetPathCreator::create_target_path_for_symlink(const fs::path& path,
     {
         return create_target_path(path);
     }
-    //it'll try and copy weird files
     return fs::path{};
 }
 
@@ -42,14 +42,23 @@ fs::path TargetPathCreator::create_target_path_for_regular_file(const fs::path& 
 //assumes filepath and src_base_path have sth in common
 fs::path TargetPathCreator::create_target_path(const fs::path& path) const
 {
-    const auto relative_path = create_path_relative_to_source_base_path(path);
+    const auto relative_path = create_path_relative_to_base_path(src_base_path, path);
     const auto fullpath_str = target_base_path.string() + relative_path.string();
     return fs::path(fullpath_str);
 }
 
-fs::path TargetPathCreator::create_path_relative_to_source_base_path(const fs::path& path) const
+fs::path TargetPathCreator::create_source_path_for_target_path(const fs::path& target_path) const
 {
-   const auto base_src_path_length = src_base_path.string().length();
+    const fs::path relative_path = create_path_relative_to_base_path(target_base_path, target_path);
+    const auto src_path = fs::path{src_base_path.string() + relative_path.string()};
+    const auto src_path_no_tmp_ext = utils::strip_tmp_ext(src_path);
+
+    return src_path_no_tmp_ext;
+}
+
+fs::path TargetPathCreator::create_path_relative_to_base_path(const fs::path& base_path, const fs::path& path) const
+{
+   const auto base_src_path_length = base_path.string().length();
    const auto filepath_str = path.string();
    const auto path_relative_to_source_base_path = std::string(filepath_str.begin()+base_src_path_length,
                                                                 filepath_str.end());

@@ -46,6 +46,9 @@ clean:
 # errors to show up.
 -include $(DEPS)
 
+run: $(BUILD_TARGET)
+	build/./scanner /media/rafal/22c34841-f0d7-4fe1-a897-eb05f0129ef8/Videos/scanner_test test/test_dir/target
+
 clean_test:
 	rm -rf test/test_dir/target/*
 	rm -rf test/test_dir/src/*

@@ -8,7 +8,8 @@
 class BackupDaemonRunner
 {
     public:
-    BackupDaemonRunner(const fs::path& src_path
+    BackupDaemonRunner(
+      const fs::path& src_path
     , const fs::path& target_path
     , const fs::path& log_file_path)
     : backup_daemon(src_path, target_path, log_file_path) {}

@@ -44,14 +44,16 @@ function compare_target_with_expected()
 function basic_test1()
 {
     #GIVEN:
-    #src/a
-    #src/a.txt
+    #   src
+    #   ├── a
+    #   └── a.txt
     #WHEN:
-    #binary executed
+    #   binary executed
     #THEN:
-    #./target should contain
-    #a.txt.bak
-    #a.bak
+    #   target
+    #   ├── a.bak
+    #   └── a.txt.bak
+
 
     echo_start "$FUNCNAME"
     clean_test
@@ -72,21 +74,21 @@ function basic_test1()
 function basic_test_dir()
 {
     #GIVEN:
-    #src
-    #└── dir
-        #├── a.txt
-        #├── b.txt
-        #└── dir
-            #└── abc
+    #   src
+    #   └── dir
+    #       ├── a.txt
+    #       ├── b.txt
+    #       └── dir
+    #           └── abc
     #WHEN:
-    #binary executed
+    #   binary executed
     #THEN:
-    #target
-    #└── dir
-        #├── a.txt.bak
-        #├── b.txt.bak
-        #└── dir
-            #└── abc.bak
+    #   target
+    #   └── dir
+    #       ├── a.txt.bak
+    #       ├── b.txt.bak
+    #       └── dir
+    #           └── abc.bak
 
     echo_start "$FUNCNAME"
     clean_test
@@ -97,8 +99,6 @@ function basic_test_dir()
     echo "content_abc" > $src_path/dir/dir/abc
 
     exec_sut
-    #que?
-    #sleep 1s
     mkdir -p $target_expected_path/dir/dir
     echo "a" > $target_expected_path/dir/a.txt.bak
     echo "b_content" > $target_expected_path/dir/b.txt.bak
@@ -123,19 +123,19 @@ function symlinks_name_clash_case()
 function basic_test_symlinks()
 {
     #GIVEN:
-    #src
-    #├── a_link.txt -> /tmp/link_dir/a.txt
-    #└── link_dir -> /tmp/link_dir/link_dir
-    #where
-    #/tmp/link_dir/link_dir
-    #└── b.txt
+    #   src
+    #   ├── a_link.txt -> /tmp/link_dir/a.txt
+    #   └── link_dir -> /tmp/link_dir/link_dir
+    #   where
+    #   /tmp/link_dir/link_dir
+    #   └── b.txt
     #WHEN:
-    #binary executed
+    #   binary executed
     #THEN:
-    #target
-    #├── a_link.txt.bak
-    #└── link_dir
-        #└── b.txt.bak
+    #   target
+    #   ├── a_link.txt.bak
+    #   └── link_dir
+    #       └── b.txt.bak
 
     echo_start "$FUNCNAME"
     clean_test
@@ -164,11 +164,6 @@ function clean_tmp_link_dir()
 {
     if [ -d $tmp_link_dir ]; then
         rm -rf $tmp_link_dir
-        #for i in "$tmp_link_dir/link_dir/*"; do
-            #echo "about to delete $i"
-            #rm -rf $i;
-        #done
-        #rm -rf $tmp_link_dir/link_dir/*
     fi
     mkdir -p $tmp_link_dir
 }
@@ -176,13 +171,13 @@ function clean_tmp_link_dir()
 function backup_chained_symlinks()
 {
     #GIVEN:
-    #src
-    #└── a_link_link -> /tmp/link_dir/a_link -> /tmp/link_dir/a.txt
+    #   src
+    #   └── a_link_link -> /tmp/link_dir/a_link -> /tmp/link_dir/a.txt
     #WHEN:
-    #binary executed
+    #   binary executed
     #THEN:
-    #target
-    #└── a_link_link.bak
+    #   target
+    #   └── a_link_link.bak
     
     echo_start "$FUNCNAME"
     clean_test
@@ -213,12 +208,12 @@ function expect_error()
 function fail_on_dangling_symlink()
 {
     #GIVEN:
-    #./src contains a link whose target doesn't exist
+    #   ./src contains a link whose target doesn't exist
     #WHEN:
-    #binary executed
+    #   binary executed
     #THEN:
-    #target should be empty,
-    #error should be present in the app log
+    #   target should be empty,
+    #   error should be present in the app log
 
     echo_start "$FUNCNAME"
     clean_test
@@ -260,17 +255,17 @@ function delete_no_effect_case()
 function delete_symlink_test()
 {
     #GIVEN:
-    #src
-    #└── alink -> /tmp/link_dir/a.txt
-    #and
-    #target
-    #└── alink.bak
+    #   src
+    #   └── alink -> /tmp/link_dir/a.txt
+    #   and
+    #   target
+    #   └── alink.bak
     #WHEN:
-    #mv alink to delete_alink
-    #binary executed
+    #   mv alink delete_alink
+    #   binary executed
     #THEN:
-    #target should be empty
-    #src should be empty
+    #   target should be empty
+    #   src should be empty
 
     echo_start "$FUNCNAME"
     clean_test
@@ -306,7 +301,7 @@ function basic_delete_test_rename_original_source_file()
     #└── a.txt.bak
     #WHEN:
     #mv ./src/a.txt ./src/delete_a.txt
-    #outcome should be:
+    #THEN
     #./src empty and ./target empty
 
     echo_start "$FUNCNAME"
@@ -317,15 +312,15 @@ function basic_delete_test_rename_original_source_file()
     exec_sut
 
     mv $src_path/a.txt $src_path/delete_a.txt
-    #exec_sut
+    exec_sut
 
-    ##expected
-    #mkdir -p $target_expected_path
-    #if expect_source_path_empty; then
-        #compare_target_with_expected 
-    #else
-        #echo_fail
-    #fi
+    #expected
+    mkdir -p $target_expected_path
+    if expect_source_path_empty; then
+        compare_target_with_expected 
+    else
+        echo_fail
+    fi
 }
 
 function expect_source_path_empty()
@@ -414,6 +409,35 @@ function backup_modified_files
     compare_target_with_expected
 }
 
+function resume_interrupted_copy()
+{
+    #GIVEN:
+    #src
+    #└── a.txt
+    #and
+    #target
+    #└── a.txt.bak.tmp
+    #WHEN:
+    #binary executed
+    #SHOULD:
+    #target_expected
+    #└── a.txt.bak
+
+    echo_start "$FUNCNAME"
+    clean_test
+
+    #setup
+    touch $src_path/a.txt
+    touch $target_path/a.txt.bak.tmp
+
+    #expected
+    touch $target_expected_path/a.txt.bak
+
+    exec_sut
+
+    compare_target_with_expected
+}
+
 function modified_file_toggling_no_backup()
 {
     echo_start "$FUNCNAME"
@@ -487,6 +511,7 @@ basic_delete_test_create_tagged_file
 backup_modified_files
 backup_chained_symlinks
 fail_on_dangling_symlink
+resume_interrupted_copy
 
 #log_basic_test1
 

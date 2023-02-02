@@ -42,5 +42,6 @@ LogEntries AppLogReader::read_app_log(const fs::path& log_path) const
             log_entries.push_back(*entry_opt);
         }
     }
+    log_file_stream.close();
     return log_entries;
 }

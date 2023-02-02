@@ -23,7 +23,7 @@ public:
 
     private:
 
-    const std::string debug_run_symbol = "d";
+    const std::string DEBUG_RUN_SYMBOL = "d";
     std::vector<std::string> split_line_by_whitespace(const std::string& line) const;
 };
 

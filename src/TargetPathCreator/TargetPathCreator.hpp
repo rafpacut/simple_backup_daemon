@@ -19,9 +19,10 @@ class TargetPathCreator
         fs::path create_target_path_for_regular_file(const fs::path&) const;
         fs::path create_target_path_for_symlink(const fs::path&, const fs::file_status&) const;
         fs::path create_target_path(const fs::path&) const;
+        fs::path create_source_path_for_target_path(const fs::path&) const;
 
     private:
-        fs::path create_path_relative_to_source_base_path(const fs::path&) const;
+        fs::path create_path_relative_to_base_path(const fs::path&, const fs::path&) const;
 
         fs::path create_target_path_without_tag(const fs::path&) const;
         std::string get_filename_without_tag(const std::string&) const;

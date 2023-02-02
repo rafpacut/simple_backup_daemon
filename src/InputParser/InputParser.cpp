@@ -8,7 +8,7 @@ InputParser::parse_cmdline_input(int argc, char* argv[]) const
     bool is_debug_run{false};
     fs::path src_path;
     fs::path target_path;
-    if(argc == 4 and std::string(argv[3]) == debug_run_symbol)
+    if(argc == 4 and std::string(argv[3]) == DEBUG_RUN_SYMBOL)
     {
         is_debug_run = true;
     }

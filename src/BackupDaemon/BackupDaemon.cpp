@@ -1,6 +1,7 @@
-#include"BackupDaemon.hpp"
 #include<chrono>
 #include<thread>
+#include"BackupDaemon.hpp"
+#include"../utils/utils.hpp"
 
 bool BackupDaemon::is_tagged_for_removal(const fs::directory_entry& entry) const
 {
@@ -9,7 +10,8 @@ bool BackupDaemon::is_tagged_for_removal(const fs::directory_entry& entry) const
     {
         return false;
     }
-    const auto filename_prefix = std::string(filename_str.begin(), filename_str.begin()+DELETE_PREFIX_LENGTH);
+    const auto filename_prefix = 
+        std::string(filename_str.begin(), filename_str.begin()+DELETE_PREFIX_LENGTH);
     return filename_prefix == DELETE_PREFIX;
 }
 
@@ -26,8 +28,29 @@ void BackupDaemon::remove_src_file_without_tag(const fs::path& tag_file_path) co
     }
 }
 
+void BackupDaemon::resume_interrupted_copies() const
+{
+    for(const auto entry : fs::recursive_directory_iterator(target_base_path))
+    {
+        if(utils::is_tmp_file(entry))
+        {
+            const auto path_no_tmp_ext = utils::strip_tmp_ext(entry.path());
+            const auto path_no_bak_ext = utils::strip_bak_ext(path_no_tmp_ext);
+            const auto path_on_source = tpc.create_source_path_for_target_path(path_no_bak_ext);
+            if(fs::exists(path_on_source))
+            {
+                const auto target_path_no_tmp = utils::strip_tmp_ext(entry.path());
+                fs_op_wrap.remove(entry.path());
+                fs_op_wrap.copy_file(path_on_source, target_path_no_tmp);
+            }
+        }
+    }
+}
+
 void BackupDaemon::operator()(std::atomic_bool& running)
 {
+    resume_interrupted_copies();
+    
     while(running.load())
     {
         std::this_thread::sleep_for(DELAY);

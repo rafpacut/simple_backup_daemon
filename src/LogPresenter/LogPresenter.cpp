@@ -22,7 +22,7 @@ LogEntries LogPresenter::filter_entries(const LogEntries& log_entries, std::rege
     std::copy_if(log_entries.cbegin(), log_entries.cend(), std::back_inserter(filtered_entries),
     [date_regex, filename_regex](const LogEntry& entry)
     {
-        const auto filename = fs::path{entry.path}.filename().string();//always matching both regexes
+        const auto filename = fs::path{entry.path}.filename().string();
 
         return std::regex_match(entry.date, date_regex)
             and std::regex_match(filename, filename_regex);

@@ -4,8 +4,7 @@ void UserInteractiveInputHandler::handle_log_display_queries(const fs::path& log
 {
     std::string line;
 
-    bool running{true};
-    while(running)
+    while(true)
     {
         std::cout<<prompt;
         std::getline(std::cin, line);
@@ -19,7 +18,7 @@ void UserInteractiveInputHandler::handle_log_display_queries(const fs::path& log
 
         if(ip.try_parse_quit(line))
         {
-            break;
+            return;
         }
 
         std::optional<RegexPair> regex_pair_opt= ip.parse_log_regex(line);
