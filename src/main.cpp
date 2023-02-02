@@ -1,19 +1,33 @@
 #include"InputParser/InputParser.hpp"
 #include"BackgroundDaemonRunner/BackgroundDaemonRunner.hpp"
 #include"UserInteractiveInputHandler/UserInteractiveInputHandler.hpp"
-//todo here:
-//app.log is a constant
-//is_debug_run is taken from cmdline
-//would be better if they were supplied in some sort of config file
+
+namespace
+{
+void print_prompt()
+{
+    std::cout<<"Usage: scanner /path/to/src/directory /path/to/target/directory\n";
+}
+}
+
 
 int main(int argc, char* argv[])
 {
     InputParser ip;
-    const auto [is_debug_run, src_path, target_path] = ip.parse_cmdline_input(argc, argv);
+    bool is_debug_run{false};
+    fs::path src_path;
+    fs::path target_path;
+    try
+    {
+        std::tie(is_debug_run, src_path, target_path) = ip.parse_cmdline_input(argc, argv);
+    }
+    catch(...)
+    {
+        print_prompt();
+        exit(0);
+    }
 
-    //for now
     const fs::path log_file_path = fs::current_path().append("app.log");
-
     BackupDaemonRunner daemon_runner(src_path, target_path, log_file_path);
     daemon_runner.run();
 

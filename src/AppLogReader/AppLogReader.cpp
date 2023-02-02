@@ -18,9 +18,8 @@ std::optional<LogEntry> AppLogReader::process_line(const std::string& line) cons
 {
     std::vector<std::string> row = split_by_comma(line);
 
-    if(row.size() == LogEntry::FIELDS_NUM)
+    if(row.size() == 4)
     {
-        //que? Why do I need FIELDS_NUM then?
         return {{row[0],row[1],row[2],row[3]}};
     }
     return std::nullopt;

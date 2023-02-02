@@ -11,7 +11,6 @@ std::string get_date_time_now()
     char buf[80];
     time_t now = time(0);
     tstruct = *localtime(&now);
-    //errno_t err = localtime_s(&tstruct, &now);
 
     strftime(buf, sizeof(buf), "%Y-%m-%d,%X", &tstruct);
     return buf;

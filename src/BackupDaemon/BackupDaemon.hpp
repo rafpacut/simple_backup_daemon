@@ -1,5 +1,6 @@
 #include<filesystem>
 #include<atomic>
+#include<unordered_map>
 #include"../Logger/Logger.hpp"
 #include"../FsOperationWrapper/FsOperationWrapper.hpp"
 #include"../TargetPathCreator/TargetPathCreator.hpp"
@@ -21,11 +22,11 @@ class BackupDaemon
 
     private:
         void resume_interrupted_copies() const;
+        void backup_entry(const fs::directory_entry& entry);
 
         bool is_tagged_for_removal(const fs::directory_entry& entry) const;
         void remove_src_file_without_tag(const fs::path& tag_file_path) const;
 
-        //why aren't they const?
         FsOperationWrapper fs_op_wrap;
         Logger logger;
         TargetPathCreator tpc;
@@ -36,4 +37,8 @@ class BackupDaemon
         const std::chrono::milliseconds DELAY{200};
         const std::string DELETE_PREFIX{"delete_"};
         const size_t DELETE_PREFIX_LENGTH{7};
+
+        using source_path_string = std::string;
+        using target_path_string = std::string;
+        std::unordered_map<source_path_string, target_path_string> path_cache;
 };

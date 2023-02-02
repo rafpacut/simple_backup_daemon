@@ -5,7 +5,7 @@ BUILD_DIR := ./build
 SRC_DIRS := ./src
 
 CXX := g++
-CPPFLAGS := -Wall -Wextra -Wpedantic -std=c++20
+CPPFLAGS := -Wall -Wextra -Wpedantic -std=c++17
 
 SRCS := $(shell find $(SRC_DIRS) -name '*.cpp')
 
@@ -47,12 +47,12 @@ clean:
 -include $(DEPS)
 
 run: $(BUILD_TARGET)
-	build/./scanner /media/rafal/22c34841-f0d7-4fe1-a897-eb05f0129ef8/Videos/scanner_test test/test_dir/target
+	build/./scanner test/test_dir/src test/test_dir/target
 
 clean_test:
 	rm -rf test/test_dir/target/*
 	rm -rf test/test_dir/src/*
 	if [ -f app.log ]; then rm app.log; fi 
 
-test_simple: $(BUILD_TARGET) clean_test
+test: $(BUILD_TARGET) clean_test
 	test/test_driver/./basic_test.sh

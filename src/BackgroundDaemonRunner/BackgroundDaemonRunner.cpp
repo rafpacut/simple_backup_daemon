@@ -1,4 +1,5 @@
 #include"BackgroundDaemonRunner.hpp"
+#include<iostream>
 
 void BackupDaemonRunner::run()
 {
@@ -7,6 +8,8 @@ void BackupDaemonRunner::run()
 
 void BackupDaemonRunner::stop()
 {
+    std::cout<<"waiting for backup to finish"<<std::endl;
     running.store(false);
     daemon_thread_ptr->join();
+    std::cout<<"finished"<<std::endl;
 }

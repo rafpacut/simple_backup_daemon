@@ -11,8 +11,8 @@ class FsOperationWrapper
     FsOperationWrapper(const Logger& logger) : logger(logger) {}
 
     void copy_file(const fs::path&, const fs::path&) const;
-    bool create_directory(const fs::path&) const;
-    bool remove(const fs::path&) const;
+    void create_directory(const fs::path&) const;
+    void remove(const fs::path&) const;
 
     private:
     const Logger& logger;

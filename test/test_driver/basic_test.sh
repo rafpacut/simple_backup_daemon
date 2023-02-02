@@ -29,7 +29,26 @@ function echo_start()
 
 function exec_sut()
 {
-    ./$binary_path $src_path $target_path d
+    debug_run_symbol="d"
+    ./$binary_path $src_path $target_path $debug_run_symbol &> /dev/null
+}
+
+function expect_error()
+{
+    if [ "$(cat $log_file_path| grep ERR | wc -l)" -gt 0 ]; then
+        return 0;
+    else
+        return 1;
+    fi
+}
+
+function expect_source_path_empty()
+{
+    if [ -z "$(ls -A $src_path)" ]; then
+        return 0;
+    else
+        return 1;
+    fi
 }
 
 function compare_target_with_expected()
@@ -39,6 +58,23 @@ function compare_target_with_expected()
     else
         echo_fail
     fi
+}
+
+function clean_tmp_link_dir()
+{
+    if [ -d $tmp_link_dir ]; then
+        rm -rf $tmp_link_dir
+    fi
+    mkdir -p $tmp_link_dir
+}
+
+function clean_test()
+{
+	rm -rf $target_path/*
+	rm -rf $src_path/*
+	if [ -f app.log ]; then rm app.log; fi 
+    clean_tmp_link_dir
+    rm -rf $target_expected_path/*
 }
 
 function basic_test1()
@@ -107,19 +143,6 @@ function basic_test_dir()
     compare_target_with_expected
 }
 
-function symlinks_name_clash_case()
-{
-    echo_start "$FUNCNAME"
-    clean_test
-
-    echo "content_a" > $src_path/a.txt
-
-    echo "content_a_link" > $tmp_link_dir/a.txt
-    ln -s $tmp_link_dir/a.txt $src_path/a_link.txt
-
-    exec_sut
-}
-
 function basic_test_symlinks()
 {
     #GIVEN:
@@ -160,14 +183,6 @@ function basic_test_symlinks()
     compare_target_with_expected
 }
 
-function clean_tmp_link_dir()
-{
-    if [ -d $tmp_link_dir ]; then
-        rm -rf $tmp_link_dir
-    fi
-    mkdir -p $tmp_link_dir
-}
-
 function backup_chained_symlinks()
 {
     #GIVEN:
@@ -194,15 +209,6 @@ function backup_chained_symlinks()
     exec_sut
 
     compare_target_with_expected
-}
-
-function expect_error()
-{
-    if [ "$(cat $log_file_path| grep ERR | wc -l)" -gt 0 ]; then
-        return 0;
-    else
-        return 1;
-    fi
 }
 
 function fail_on_dangling_symlink()
@@ -233,23 +239,6 @@ function fail_on_dangling_symlink()
     else
         echo_fail
     fi
-}
-
-function delete_no_effect_case()
-{
-    echo_start "$FUNCNAME"
-    clean_test
-
-    touch $src_path/a.txt
-    exec_sut
-
-    [ -f $target_path/a.txt.bak ]
-
-    touch $src_path/delete_a.txt
-    exec_sut
-    #the way the fs tree is iterated rn
-    #the deletion of $src_path/a.txt might not get observed
-    #by fs::recursive_iterator and this non-existing file
 }
 
 function delete_symlink_test()
@@ -320,15 +309,6 @@ function basic_delete_test_rename_original_source_file()
         compare_target_with_expected 
     else
         echo_fail
-    fi
-}
-
-function expect_source_path_empty()
-{
-    if [ -z "$(ls -A $src_path)" ]; then
-        return 0;
-    else
-        return 1;
     fi
 }
 
@@ -438,63 +418,6 @@ function resume_interrupted_copy()
     compare_target_with_expected
 }
 
-function modified_file_toggling_no_backup()
-{
-    echo_start "$FUNCNAME"
-    clean_test
-
-    pass_number=0
-    fail_number=0
-    for _ in {1..100}; do
-        echo "a1" > $src_path/a.txt
-        exec_sut
-        #passes only with sleep command below 
-        #sleep 0.1s
-        echo "a2" > $src_path/a.txt
-        exec_sut
-        if [ $(cat $target_path/a.txt.bak) = "a2" ]; then
-            pass_number=$(($pass_number+1))
-        else
-            fail_number=$(($fail_number+1))
-        fi
-    done
-    echo "pass/fail: $pass_number/$fail_number"
-
-    if [ $fail_number -eq 0 ]; then
-        echo_pass
-    else
-        echo_fail
-    fi
-}
-
-function clean_test()
-{
-	rm -rf $target_path/*
-	rm -rf $src_path/*
-	if [ -f app.log ]; then rm app.log; fi 
-    clean_tmp_link_dir
-    rm -rf $target_expected_path/*
-}
-
-function check_app_log()
-{
-    filename_csv_file_index=2
-    message_csv_file_index=3
-    while IFS="," read -r date timestamp path message; do
-        echo "$path"
-        echo "$message"
-        if [ ! $(echo $message | grep "*ERR*") = "" ]; then
-            echo_fail;
-            return;
-        fi
-    done < <(cat app.log)
-}
-
-function log_basic_test1()
-{
-    basic_test1
-    check_app_log
-}
 
 if [ ! -d $src_path ]; then mkdir -p $src_path; fi
 if [ ! -d $target ]; then mkdir -p $target; fi
@@ -512,7 +435,3 @@ backup_modified_files
 backup_chained_symlinks
 fail_on_dangling_symlink
 resume_interrupted_copy
-
-#log_basic_test1
-
-#modified_file_toggling_no_backup

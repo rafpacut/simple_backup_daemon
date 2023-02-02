@@ -11,8 +11,6 @@ struct LogEntry
     std::string time;
     std::string path;
     std::string message;
-
-    const static size_t FIELDS_NUM = 4;
 };
 using LogEntries = std::vector<LogEntry>;
 

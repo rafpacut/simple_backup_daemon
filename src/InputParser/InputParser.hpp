@@ -2,7 +2,6 @@
 #define INPUT_PARSER
 
 #include<utility>
-#include<stdexcept>
 #include<filesystem>
 #include<regex>
 #include<optional>

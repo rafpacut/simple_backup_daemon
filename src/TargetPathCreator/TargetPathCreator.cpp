@@ -39,7 +39,7 @@ fs::path TargetPathCreator::create_target_path_for_regular_file(const fs::path& 
     return target_path;
 }
 
-//assumes filepath and src_base_path have sth in common
+//assumes src_base_path is a part of path
 fs::path TargetPathCreator::create_target_path(const fs::path& path) const
 {
     const auto relative_path = create_path_relative_to_base_path(src_base_path, path);

@@ -18,8 +18,12 @@ bool BackupDaemon::is_tagged_for_removal(const fs::directory_entry& entry) const
 void BackupDaemon::remove_src_file_without_tag(const fs::path& tag_file_path) const
 {
     auto filename_str = tag_file_path.filename().string();
-    const auto filename_str_no_tag = std::string(filename_str.begin()+DELETE_PREFIX_LENGTH, filename_str.end());
+    if(filename_str.size() < DELETE_PREFIX_LENGTH)
+    {
+        return;
+    }
 
+    const auto filename_str_no_tag = std::string(filename_str.begin()+DELETE_PREFIX_LENGTH, filename_str.end());
     auto source_path_no_tag = tag_file_path;
     source_path_no_tag.replace_filename(filename_str_no_tag);
     if(fs::exists(source_path_no_tag))
@@ -47,6 +51,48 @@ void BackupDaemon::resume_interrupted_copies() const
     }
 }
 
+void BackupDaemon::backup_entry(const fs::directory_entry& entry)
+{
+    fs::path target_path;
+    if(is_tagged_for_removal(entry))
+    {
+        target_path = tpc.create_target_path_for_tagged_entry(entry);
+        remove_src_file_without_tag(entry.path());
+        fs_op_wrap.remove(entry.path());
+        fs_op_wrap.remove(target_path);
+    }
+    if(entry.is_directory())
+    {
+        target_path = tpc.create_target_path(entry.path());
+        fs_op_wrap.create_directory(target_path);
+    }
+    if(entry.is_symlink())
+    {
+        try
+        {
+            const fs::path symlink_path = fs::read_symlink(entry.path());
+            target_path = tpc.create_target_path_for_symlink(entry.path(), entry.status());
+            fs_op_wrap.copy_file(symlink_path, target_path);
+        }
+        catch(fs::filesystem_error& e)
+        {
+            logger.log_error(entry.path(), e.what());
+            return;
+        }
+    }
+    if(entry.is_regular_file())
+    {
+        target_path = tpc.create_target_path_for_regular_file(entry.path());
+        fs_op_wrap.copy_file(entry.path(), target_path);
+    }
+    path_cache.insert({entry.path().string(), target_path.string()});
+}
+
+bool contains(const std::unordered_map<std::string,std::string>& map, const std::string& key)
+{
+    return map.find(key) != map.end();
+}
+
 void BackupDaemon::operator()(std::atomic_bool& running)
 {
     resume_interrupted_copies();
@@ -60,33 +106,19 @@ void BackupDaemon::operator()(std::atomic_bool& running)
             {
                 return;
             }
-            if(is_tagged_for_removal(entry))
+
+            const auto path_was_cached = contains(path_cache, entry.path().string());
+            if(not path_was_cached)
             {
-                const auto target_path = tpc.create_target_path_for_tagged_entry(entry);
-                remove_src_file_without_tag(entry.path());
-                fs_op_wrap.remove(entry.path());
-                fs_op_wrap.remove(target_path);
+                backup_entry(entry);
             }
-            else if(entry.is_directory())
+            else
             {
-                const auto target_path = tpc.create_target_path(entry.path());
-                fs_op_wrap.create_directory(target_path);
-            }
-            else if(entry.is_symlink())
-            {
-                //this could be confusing
-                //why declare error_code if I'm not using it?
-                //because then read_symlink returns empty path on error
-                //which is fine by me
-                std::error_code error_code;
-                const fs::path symlink_path = fs::read_symlink(entry.path(), error_code);//returns fs::path{} on error
-                const auto target_path = tpc.create_target_path_for_symlink(entry.path(), entry.status());
-                fs_op_wrap.copy_file(symlink_path, target_path);
-            }
-            else if(entry.is_regular_file())
-            {
-                const auto target_path = tpc.create_target_path_for_regular_file(entry.path());
-                fs_op_wrap.copy_file(entry.path(), target_path);
+                fs::path target_path = path_cache.at(entry.path().string());
+                if(path_was_cached and fs::exists(target_path) and utils::is_file_newer(entry.path(), target_path))
+                {
+                    backup_entry(entry);
+                }
             }
         }
     }

@@ -38,7 +38,6 @@ fs::path strip_bak_ext(const fs::path& path)
 fs::path strip_tmp_ext(const fs::path& path)
 {
     auto path_no_tmp = path;
-    //const auto path_ext = path.extension().string();
     const auto filename = path.filename().string();
     const auto tmp_ext_length = 4;
     if(filename.size() > tmp_ext_length)
@@ -49,11 +48,15 @@ fs::path strip_tmp_ext(const fs::path& path)
             path_no_tmp.replace_filename(std::string(filename.begin(), filename.end()-tmp_ext_length));
         }
     }
-    //const auto path_ext_no_tmp = std::string(path_ext.begin(), path_ext.begin()+tmp_ext_length);
-    //path_no_tmp.replace_extension(path_ext_no_tmp);
 
     return path_no_tmp;
 }
+
+bool is_file_newer(const fs::path& src, const fs::path& target)
+{
+    return fs::last_write_time(src) > fs::last_write_time(target);
+}
+
 }
 
 #endif
