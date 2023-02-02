@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
-src_path="./test/test_dir/src"
-target_path="./test/test_dir/target"
+test_dir="./test/test_dir"
+src_path="$test_dir/src"
+target_path="$test_dir/target"
 target_expected_path="./test/test_dir/target_expected"
 binary_path="build/scanner"
 #temporary
@@ -30,7 +31,7 @@ function echo_start()
 function exec_sut()
 {
     debug_run_symbol="d"
-    ./$binary_path $src_path $target_path $debug_run_symbol &> /dev/null
+    ./$binary_path $src_path $target_path $debug_run_symbol
 }
 
 function expect_error()
@@ -419,10 +420,11 @@ function resume_interrupted_copy()
 }
 
 
-if [ ! -d $src_path ]; then mkdir -p $src_path; fi
-if [ ! -d $target ]; then mkdir -p $target; fi
-if [ ! -d $target_expected_path ]; then mkdir -p $target_expected_path; fi
-if [ ! -d $tmp_link_dir ]; then mkdir -p $tmp_link_dir; fi
+if [ ! -d "$test_dir" ]; then mkdir -p $test_dir; fi
+if [ ! -d "$src_path" ]; then mkdir -p $src_path; fi
+if [ ! -d "$target" ]; then mkdir -p $target_path; fi
+if [ ! -d "$target_expected_path" ]; then mkdir -p $target_expected_path; fi
+if [ ! -d "$tmp_link_dir" ]; then mkdir -p $tmp_link_dir; fi
 
 
 basic_test1

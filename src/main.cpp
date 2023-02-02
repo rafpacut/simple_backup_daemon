@@ -21,8 +21,9 @@ int main(int argc, char* argv[])
     {
         std::tie(is_debug_run, src_path, target_path) = ip.parse_cmdline_input(argc, argv);
     }
-    catch(...)
+    catch(const std::exception& e)
     {
+        std::cerr<<e.what()<<std::endl;
         print_prompt();
         exit(0);
     }
